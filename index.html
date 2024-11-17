@@ -12,8 +12,8 @@
 <BODY>
     <h1 align=center>Deebash Dharmalingam</h1>
     <p>Hi, I'm Deebash, software engineer with more than a decade of experience in 
-    developing personal projects and 9+ years of work experience. I have started 
-    my open source contributions from Notepad++ and authoring few free-softwares,
+    developing personal projects and <span id="experience"></span> of work experience. I have started 
+    my open source contributions from Notepad++ (<a href="https://github.com/notepad-plus-plus/notepad-plus-plus/pull/11190" target="_blank">#11190</a>) and authoring few free-softwares,
     residing in Namakkal, India.</p>
 
     <p>
@@ -32,4 +32,32 @@
     Write your feedback to <a href="mailto:deebash2009@gmail.com">deebash2009@gmail.com</a>
 
 </BODY>
+<script>
+    const startDate = new Date(2015, 7, 8); // Start date (08/08/2015)
+    const currentDate = new Date();
+    let years = currentDate.getFullYear() - startDate.getFullYear();
+    let months = currentDate.getMonth() - startDate.getMonth();
+    let days = currentDate.getDate() - startDate.getDate();
+
+    // Adjust for negative days
+    if (days < 0) {
+        months -= 1;
+        const previousMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
+        days += previousMonth.getDate();
+    }
+
+    // Adjust for negative months
+    if (months < 0) {
+        years -= 1;
+        months += 12;
+    }
+
+    function formatUnit(value, unit) {
+        return `${value} ${unit}${value === 1 ? '' : 's'}`;
+    }
+
+    const output = `${formatUnit(years, 'year')}, ${formatUnit(months, 'month')}, and ${formatUnit(days, 'day')}`;
+
+    document.getElementById("experience").innerHTML = output;
+</script>
 </HTML>
