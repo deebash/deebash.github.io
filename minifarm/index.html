@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MiniFarm — Distributed Rendering for After Effects</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0f0d;
+    --bg2: #141510;
+    --bg3: #1a1c17;
+    --surface: #1f211a;
+    --surface2: #272920;
+    --green: #7ecb35;
+    --green-dim: #4a7a1e;
+    --green-glow: rgba(126,203,53,0.15);
+    --green-pale: #c8f08a;
+    --text: #e8ead8;
+    --text-muted: #7a7d6a;
+    --text-dim: #4a4d3c;
+    --amber: #e6a020;
+    --border: rgba(126,203,53,0.12);
+    --border-strong: rgba(126,203,53,0.28);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* --- GRAIN OVERLAY --- */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  /* --- NAV --- */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 48px;
+    height: 64px;
+    background: rgba(14,15,13,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+
+  .nav-logo-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .nav-logo-text {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--green);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 36px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--green); }
+
+  .nav-cta {
+    background: var(--green) !important;
+    color: var(--bg) !important;
+    padding: 8px 20px;
+    border-radius: 4px;
+    font-weight: 500 !important;
+  }
+
+  .nav-cta:hover { background: var(--green-pale) !important; }
+
+  /* --- HERO --- */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 100px 24px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-bg-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(126,203,53,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(126,203,53,0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black, transparent);
+  }
+
+  .hero-glow {
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 400px;
+    background: radial-gradient(ellipse, rgba(126,203,53,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 100px;
+    padding: 6px 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--green);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 36px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .badge-dot {
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s ease infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.7); }
+  }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(52px, 8vw, 96px);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 12px;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+
+  .hero h1 span {
+    color: var(--green);
+    display: block;
+  }
+
+  .hero-sub {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+
+  .hero p {
+    max-width: 520px;
+    color: var(--text-muted);
+    font-size: 16px;
+    margin-bottom: 48px;
+    animation: fadeUp 0.6s 0.3s ease both;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+    animation: fadeUp 0.6s 0.4s ease both;
+  }
+
+  .btn-primary {
+    background: var(--green);
+    color: var(--bg);
+    padding: 14px 32px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+    transition: all 0.2s;
+    font-family: 'Syne', sans-serif;
+  }
+
+  .btn-primary:hover {
+    background: var(--green-pale);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(126,203,53,0.25);
+  }
+
+  .btn-ghost {
+    border: 1px solid var(--border-strong);
+    color: var(--text-muted);
+    padding: 14px 32px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+    transition: all 0.2s;
+    font-family: 'Syne', sans-serif;
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--green);
+    color: var(--green);
+    transform: translateY(-2px);
+  }
+
+  /* --- SCREENSHOT --- */
+  .screenshot-section {
+    padding: 0 24px 100px;
+    display: flex;
+    justify-content: center;
+    animation: fadeUp 0.6s 0.5s ease both;
+  }
+
+  .screenshot-wrap {
+    position: relative;
+    max-width: 900px;
+    width: 100%;
+  }
+
+  .screenshot-wrap::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--green-dim), transparent 60%);
+    z-index: 0;
+  }
+
+  .screenshot-wrap::after {
+    content: '';
+    position: absolute;
+    bottom: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 70%;
+    height: 60px;
+    background: radial-gradient(ellipse, rgba(126,203,53,0.2), transparent 70%);
+    filter: blur(20px);
+  }
+
+  .screenshot-wrap img {
+    width: 100%;
+    border-radius: 12px;
+    display: block;
+    position: relative;
+    z-index: 1;
+    border: 1px solid var(--border-strong);
+    box-shadow: 0 40px 120px rgba(0,0,0,0.7);
+  }
+
+  /* --- FEATURES --- */
+  .features {
+    padding: 100px 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--green);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(32px, 4vw, 52px);
+    line-height: 1.1;
+    margin-bottom: 64px;
+    color: var(--text);
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .feature-card {
+    background: var(--bg);
+    padding: 36px 32px;
+    transition: background 0.2s;
+  }
+
+  .feature-card:hover { background: var(--surface); }
+
+  .feature-icon {
+    width: 40px; height: 40px;
+    margin-bottom: 20px;
+    color: var(--green);
+  }
+
+  .feature-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+
+  .feature-card p {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  /* --- SETUP --- */
+  .setup {
+    padding: 100px 24px;
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .setup-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .setup-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 48px;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    overflow: hidden;
+    width: fit-content;
+  }
+
+  .tab-btn {
+    padding: 12px 28px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tab-btn.active {
+    background: var(--green);
+    color: var(--bg);
+  }
+
+  .tab-btn:not(.active):hover {
+    background: var(--surface2);
+    color: var(--text);
+  }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .setup-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .step {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    gap: 0;
+    position: relative;
+  }
+
+  .step:not(:last-child) .step-line {
+    position: absolute;
+    left: 31px;
+    top: 48px;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
+  }
+
+  .step-num {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 2px solid var(--border-strong);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--green);
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 4px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .step-body {
+    padding: 0 0 40px 24px;
+  }
+
+  .step-body h4 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .step-body p {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-bottom: 12px;
+  }
+
+  .code-block {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--green-pale);
+    overflow-x: auto;
+    margin-top: 10px;
+  }
+
+  .note {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 8px;
+    background: rgba(230,160,32,0.08);
+    border: 1px solid rgba(230,160,32,0.2);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--amber);
+    margin-top: 10px;
+  }
+
+  /* --- PRICING --- */
+  .pricing {
+    padding: 100px 24px;
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 64px;
+    text-align: left;
+  }
+
+  .pricing-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 40px 36px;
+    position: relative;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .pricing-card:hover {
+    border-color: var(--green-dim);
+    transform: translateY(-4px);
+  }
+
+  .pricing-card.featured {
+    border-color: var(--green);
+    background: var(--surface2);
+  }
+
+  .pricing-card.featured::before {
+    content: 'BEST VALUE';
+    position: absolute;
+    top: -12px; left: 24px;
+    background: var(--green);
+    color: var(--bg);
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-weight: 700;
+  }
+
+  .pricing-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .pricing-price {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 52px;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .pricing-price sup {
+    font-size: 24px;
+    vertical-align: super;
+  }
+
+  .pricing-period {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 32px;
+  }
+
+  .pricing-features {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 36px;
+  }
+
+  .pricing-features li {
+    font-size: 14px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .pricing-features li::before {
+    content: '✓';
+    color: var(--green);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .btn-pricing {
+    display: block;
+    text-align: center;
+    padding: 14px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+    transition: all 0.2s;
+  }
+
+  .btn-pricing-outline {
+    border: 1px solid var(--border-strong);
+    color: var(--text-muted);
+  }
+
+  .btn-pricing-outline:hover {
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  .btn-pricing-solid {
+    background: var(--green);
+    color: var(--bg);
+  }
+
+  .btn-pricing-solid:hover {
+    background: var(--green-pale);
+  }
+
+  .pricing-note {
+    margin-top: 40px;
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  .pricing-note a {
+    color: var(--green);
+    text-decoration: none;
+  }
+
+  .pricing-note a:hover { text-decoration: underline; }
+
+  /* --- FOOTER --- */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+
+  .footer-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--green);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .footer-copy {
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 24px;
+  }
+
+  .footer-links a {
+    font-size: 13px;
+    color: var(--text-dim);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .footer-links a:hover { color: var(--green); }
+
+  /* --- ANIMATIONS --- */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* --- DIVIDER --- */
+  .divider {
+    max-width: 1100px;
+    margin: 0 auto;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* --- PLATFORM BADGES --- */
+  .platform-badges {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 32px;
+    flex-wrap: wrap;
+    animation: fadeUp 0.6s 0.45s ease both;
+  }
+
+  .platform-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .platform-badge svg { color: var(--green); }
+
+  @media (max-width: 700px) {
+    nav { padding: 0 20px; }
+    .nav-links { display: none; }
+    .pricing-grid { grid-template-columns: 1fr; }
+    footer { flex-direction: column; align-items: flex-start; }
+    .hero h1 { font-size: 42px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">
+    <svg class="nav-logo-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="32" height="32" rx="6" fill="#1a1c17"/>
+      <path d="M16 6 C16 6 10 12 10 18 C10 21.3 12.7 24 16 24 C19.3 24 22 21.3 22 18 C22 12 16 6 16 6Z" fill="#7ecb35" opacity="0.9"/>
+      <path d="M16 14 L16 26" stroke="#4a7a1e" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M16 18 L19 15" stroke="#4a7a1e" stroke-width="1.5" stroke-linecap="round"/>
+      <rect x="10" y="24" width="12" height="3" rx="1.5" fill="#8B5E3C"/>
+    </svg>
+    <span class="nav-logo-text">MiniFarm</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#setup">Setup</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="mailto:deebash2009@gmail.com" class="nav-cta">Get License</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-badge">
+    <span class="badge-dot"></span>
+    Free · Wi-Fi · Ethernet
+  </div>
+  <h1>Mini<span>Farm</span></h1>
+  <p class="hero-sub">Distributed Rendering for After Effects®</p>
+  <p>Turn your local machines into a render farm. MiniFarm splits After Effects compositions across multiple nodes on your network — no cloud, no subscriptions, no limits.</p>
+  <div class="hero-actions">
+    <a href="#setup" class="btn-primary">Get Started</a>
+    <a href="#pricing" class="btn-ghost">View Pricing</a>
+  </div>
+  <div class="platform-badges">
+    <span class="platform-badge">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
+      macOS
+    </span>
+    <span class="platform-badge">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="2" y="3" width="20" height="14" rx="2" stroke-width="2"/><path d="M8 21h8M12 17v4" stroke-width="2" stroke-linecap="round"/></svg>
+      Windows
+    </span>
+    <span class="platform-badge">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="9" stroke-width="2"/><path d="M12 3v9l5 3" stroke-width="2" stroke-linecap="round"/></svg>
+      After Effects Plugin
+    </span>
+  </div>
+</section>
+
+<!-- SCREENSHOT -->
+<section class="screenshot-section">
+  <div class="screenshot-wrap reveal">
+    <img src="images/ChatGPT_Image_May_11__2026__07_33_02_PM.png" alt="MiniFarm application screenshot showing job allocation, node status, and render queue">
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="reveal">
+    <div class="section-label">Why MiniFarm</div>
+    <div class="section-title">Everything you need.<br>Nothing you don't.</div>
+  </div>
+  <div class="features-grid reveal">
+    <div class="feature-card">
+      <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <path d="M5 12h14M12 5l7 7-7 7"/>
+      </svg>
+      <h3>Automatic Job Splitting</h3>
+      <p>MiniFarm divides your composition's frame range across all available nodes automatically. No manual configuration required.</p>
+    </div>
+    <div class="feature-card">
+      <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+      </svg>
+      <h3>Real-Time Job Status</h3>
+      <p>Watch each node's progress live. Segment IDs, frame ranges, and completion percentages update in real time across your network.</p>
+    </div>
+    <div class="feature-card">
+      <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+      </svg>
+      <h3>Mac & Windows</h3>
+      <p>Run master and worker nodes on any combination of macOS and Windows machines. Mixed-OS farms work seamlessly.</p>
+    </div>
+    <div class="feature-card">
+      <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+      </svg>
+      <h3>After Effects Plugin</h3>
+      <p>Send your project directly from After Effects with a single click. The plugin captures comp name and project path automatically.</p>
+    </div>
+    <div class="feature-card">
+      <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      <h3>Local & Private</h3>
+      <p>Everything runs on your local network. No cloud upload, no external servers — your project files never leave your studio.</p>
+    </div>
+    <div class="feature-card">
+      <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+      </svg>
+      <h3>Built-in Web Server</h3>
+      <p>The desktop app runs a lightweight local web server for node communication. No port-forwarding or VPN setup needed on your LAN.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SETUP -->
+<section class="setup" id="setup">
+  <div class="setup-inner">
+    <div class="reveal">
+      <div class="section-label">Getting Started</div>
+      <div class="section-title">Setup Guide</div>
+    </div>
+
+    <div class="setup-tabs reveal">
+      <button class="tab-btn active" onclick="switchTab('mac')">
+        <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+        macOS
+      </button>
+      <button class="tab-btn" onclick="switchTab('win')">
+        <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+        Windows
+      </button>
+    </div>
+
+    <!-- MAC STEPS -->
+    <div id="tab-mac" class="tab-content active">
+      <div class="setup-steps reveal">
+
+        <div class="step">
+          <div class="step-line"></div>
+          <div class="step-num">01</div>
+          <div class="step-body">
+            <h4>Install MiniFarm</h4>
+            <p>Download the MiniFarm .dmg installer and drag MiniFarm.app to your Applications folder. Launch it — it will appear in your menu bar.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-line"></div>
+          <div class="step-num">02</div>
+          <div class="step-body">
+            <h4>Set the aerender Path</h4>
+            <p>Open <strong>MiniFarm → Settings</strong> and click <em>Browse</em> next to "aerender Path". Navigate to your After Effects installation and select <code>aerender</code>.</p>
+            <div class="code-block">/Applications/Adobe After Effects [version]/aerender</div>
+            <div class="note">💡 The version folder name varies — e.g. "Adobe After Effects 2024".</div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-line"></div>
+          <div class="step-num">03</div>
+          <div class="step-body">
+            <h4>Set Working & Output Directories</h4>
+            <p>In Settings, set your <strong>Working Directory</strong> to a shared folder accessible by all nodes on your network (e.g. a NAS or shared volume). Set your <strong>Output Directory</strong> where rendered frames will be saved.</p>
+            <div class="code-block">/Volumes/SharedStorage/MiniFarm/Work<br>/Volumes/SharedStorage/MiniFarm/Output</div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-line"></div>
+          <div class="step-num">04</div>
+          <div class="step-body">
+            <h4>Create the "minifarm" Output Module in After Effects</h4>
+            <p>Open After Effects → <strong>Edit → Templates → Output Module</strong>. Click New, name it exactly <code>minifarm</code> (lowercase), configure your desired codec and format, then click OK and save.</p>
+            <div class="note">⚠️ The output module name must be exactly <strong>minifarm</strong> for MiniFarm to recognise it.</div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-line"></div>
+          <div class="step-num">05</div>
+          <div class="step-body">
+            <h4>Install the After Effects Plugin</h4>
+            <p>Copy the <code>MiniFarm.jsx</code> script to your After Effects Scripts UI Panel folder, then enable it via <strong>File → Scripts → MiniFarm</strong>. Use the plugin panel inside AE to send jobs to the desktop app.</p>
+            <div class="code-block">/Applications/Adobe After Effects [version]/Scripts/ScriptUI Panels/</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- WINDOWS STEPS -->
+    <div id="tab-win" class="tab-content">
+      <div class="setup-steps reveal">
+
+        <div class="step">
+          <div class="step-line"></div>
+          <div class="step-num">01</div>
+          <div class="step-body">
+            <h4>Install MiniFarm</h4>
+            <p>Download the MiniFarm installer (.exe) and run it. MiniFarm will install and appear in your system tray after launch.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-line"></div>
+          <div class="step-num">02</div>
+          <div class="step-body">
+            <h4>Set the aerender Path</h4>
+            <p>Open <strong>MiniFarm → Settings</strong> and click <em>Browse</em> next to "aerender Path". Navigate to your After Effects installation and select <code>aerender.exe</code>.</p>
+            <div class="code-block">C:\Program Files\Adobe\Adobe After Effects [version]\Support Files\aerender.exe</div>
+            <div class="note">💡 Replace [version] with your installed version, e.g. "2024".</div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-line"></div>
+          <div class="step-num">03</div>
+          <div class="step-body">
+            <h4>Set Working & Output Directories</h4>
+            <p>In Settings, point <strong>Working Directory</strong> to a network share accessible by all render nodes. Set your <strong>Output Directory</strong> for rendered frames.</p>
+            <div class="code-block">\\NAS\MiniFarm\Work<br>\\NAS\MiniFarm\Output</div>
+            <div class="note">⚠️ Use UNC paths (\\server\share) rather than mapped drive letters for cross-node compatibility.</div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-line"></div>
+          <div class="step-num">04</div>
+          <div class="step-body">
+            <h4>Create the "minifarm" Output Module in After Effects</h4>
+            <p>Open After Effects → <strong>Edit → Templates → Output Module</strong>. Click New, name it exactly <code>minifarm</code> (lowercase), configure your desired codec and format, then click OK and save.</p>
+            <div class="note">⚠️ The output module name must be exactly <strong>minifarm</strong> for MiniFarm to recognise it.</div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-line"></div>
+          <div class="step-num">05</div>
+          <div class="step-body">
+            <h4>Install the After Effects Plugin</h4>
+            <p>Copy <code>MiniFarm.jsx</code> to your After Effects ScriptUI Panels folder, then enable via <strong>File → Scripts → MiniFarm</strong>. Use the panel to send jobs directly to MiniFarm.</p>
+            <div class="code-block">C:\Program Files\Adobe\Adobe After Effects [version]\Support Files\Scripts\ScriptUI Panels\</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div class="reveal">
+    <div class="section-label">Licensing</div>
+    <div class="section-title">Simple, Per-Machine Pricing</div>
+    <p style="color:var(--text-muted); font-size:15px;">Each license covers one machine. Mix and match plans across your farm.</p>
+  </div>
+
+  <div class="pricing-grid reveal">
+    <div class="pricing-card">
+      <div class="pricing-label">Annual</div>
+      <div class="pricing-price"><sup>$</sup>10</div>
+      <div class="pricing-period">per machine / per year</div>
+      <ul class="pricing-features">
+        <li>Full MiniFarm desktop app</li>
+        <li>After Effects plugin included</li>
+        <li>Mac & Windows</li>
+        <li>All updates during term</li>
+        <li>Email support</li>
+      </ul>
+      <a href="mailto:deebash2009@gmail.com?subject=MiniFarm Annual License&body=Hi, I'd like to purchase MiniFarm annual licenses. Number of machines: " class="btn-pricing btn-pricing-outline">Buy Annual License →</a>
+    </div>
+
+    <div class="pricing-card featured">
+      <div class="pricing-label">Lifetime</div>
+      <div class="pricing-price"><sup>$</sup>29</div>
+      <div class="pricing-period">per machine / one-time</div>
+      <ul class="pricing-features">
+        <li>Full MiniFarm desktop app</li>
+        <li>After Effects plugin included</li>
+        <li>Mac & Windows</li>
+        <li>All future updates, forever</li>
+        <li>Priority email support</li>
+      </ul>
+      <a href="mailto:deebash2009@gmail.com?subject=MiniFarm Lifetime License&body=Hi, I'd like to purchase MiniFarm lifetime licenses. Number of machines: " class="btn-pricing btn-pricing-solid">Buy Lifetime License →</a>
+    </div>
+  </div>
+
+  <p class="pricing-note reveal">
+    To purchase, email <a href="mailto:deebash2009@gmail.com">deebash2009@gmail.com</a> with how many machine licenses you need and your preferred plan.<br>
+    Volume discounts available for 5+ machines. Studio licensing available on request.
+  </p>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">MiniFarm</div>
+  <p class="footer-copy">© 2026 Deebash Dharmalingam. All rights reserved.</p>
+  <div class="footer-links">
+    <a href="#setup">Setup Guide</a>
+    <a href="#pricing">Pricing</a>
+    <a href="mailto:deebash2009@gmail.com">Contact</a>
+  </div>
+</footer>
+
+<script>
+  function switchTab(os) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById('tab-' + os).classList.add('active');
+    event.currentTarget.classList.add('active');
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
