@@ -1,0 +1,319 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#140E0B">
+
+    <title>Delete Your Account | Ding Messenger</title>
+
+    <meta name="description"
+          content="Learn how to delete your Ding Messenger account and associated data.">
+
+    <style>
+        :root {
+            --brand: #ff3c00;
+            --brand-bright: #FF521D;
+            --brand-dark: #27140D;
+            --brand-deep: #241914;
+            --brand-muted: #140E0B;
+
+            --text: #ffffff;
+            --text-secondary: #b9aaa4;
+            --border: rgba(255, 255, 255, 0.10);
+            --surface: rgba(255, 255, 255, 0.035);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background:
+                radial-gradient(
+                    ellipse at 50% 0%,
+                    var(--brand-dark) 0%,
+                    var(--brand-muted) 60%
+                );
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                         Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            width: min(100% - 32px, 680px);
+            margin: 0 auto;
+            padding: 56px 0 32px;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 52px;
+        }
+
+        .logo {
+            width: 56px;
+            height: auto;
+            display: block;
+        }
+
+        .brand-name {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        .brand-name span {
+            color: var(--brand);
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 38px;
+        }
+
+        .eyebrow {
+            display: inline-block;
+            color: var(--brand-bright);
+            background: rgba(255, 60, 0, 0.10);
+            border: 1px solid rgba(255, 60, 0, 0.22);
+            border-radius: 100px;
+            padding: 5px 13px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 20px 0 12px;
+            font-size: clamp(32px, 7vw, 46px);
+            line-height: 1.15;
+            letter-spacing: -1.8px;
+        }
+
+        .hero p {
+            max-width: 510px;
+            margin: 0 auto;
+            color: var(--text-secondary);
+            font-size: 16px;
+        }
+
+        .card {
+            padding: 26px;
+            margin-bottom: 18px;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            background: var(--surface);
+        }
+
+        .step {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .step-number {
+            flex: 0 0 42px;
+            height: 42px;
+            display: grid;
+            place-items: center;
+            border-radius: 12px;
+            color: var(--brand-bright);
+            background: rgba(255, 60, 0, 0.12);
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        h2 {
+            margin: 0 0 8px;
+            font-size: 19px;
+            line-height: 1.4;
+        }
+
+        .card p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .email-link {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 11px 16px;
+            border-radius: 10px;
+            background: var(--brand);
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+            transition: background 0.2s ease;
+            overflow-wrap: anywhere;
+        }
+
+        .email-link:hover {
+            background: var(--brand-bright);
+        }
+
+        .notice {
+            margin-top: 26px;
+            padding: 20px 22px;
+            border-left: 3px solid var(--brand);
+            border-radius: 0 12px 12px 0;
+            background: rgba(255, 60, 0, 0.06);
+        }
+
+        .notice h2 {
+            font-size: 16px;
+        }
+
+        .notice p {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin: 0;
+        }
+
+        footer {
+            margin-top: 44px;
+            padding-top: 22px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        footer p {
+            margin: 5px 0;
+        }
+
+        footer a {
+            color: var(--brand-bright);
+            text-decoration: none;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding-top: 36px;
+            }
+
+            header {
+                margin-bottom: 38px;
+            }
+
+            .card {
+                padding: 21px;
+            }
+
+            .step {
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="container">
+
+        <header>
+            <!-- Ding logo: original Android vector paths -->
+            <svg class="logo"
+                 xmlns="http://www.w3.org/2000/svg"
+                 viewBox="0 0 2048 1584"
+                 role="img"
+                 aria-label="Ding Messenger logo">
+                <g fill="#ff3c00">
+                    <path d="M1362.7,154.4C1561.8,148.1 1760.6,186.5 1873.6,367.8C1984.9,546.2 1992.9,786.1 1953.8,988C1928.9,1116.9 1856.9,1248.9 1744.4,1320.3C1556,1439.3 1287.4,1437.9 1073.2,1419.9C960.4,1411.3 848.3,1395.1 737.7,1371.6C568.8,1335.8 392.3,1272.7 263.1,1154.6C171.2,1070.5 70.6,935.5 65.1,806.6C61.6,723.7 98.7,652.1 153.7,592.1C338.9,390.6 802,240.4 1069.1,188.7C1166,170.1 1264.1,158.6 1362.7,154.4zM1738.2,892.5C1745.9,935.6 1738.9,1004 1714,1041.8C1686.7,1083.1 1623.6,1094.5 1583.4,1065.3C1550,1041 1542.2,1003.8 1498,991.5C1485.2,987.8 1471.8,987.1 1458.6,989.2C1405.3,997.8 1361.8,1051.5 1369,1105.8C1371.7,1139.9 1399.3,1172.2 1424.2,1193.9C1536.2,1291.2 1729.4,1286.2 1826.8,1170.2C1886.4,1099.1 1905.4,1005.6 1915.5,915.9C1928.4,801.5 1920.6,686.5 1900.2,573.5C1895.3,546.3 1896,514.6 1872.4,495.2C1841.8,470.5 1779.4,476.1 1753.7,506.3C1745.9,515.4 1742.9,526.4 1741.1,537.8C1708.5,481.2 1645.5,462.5 1583.7,468.4C1509.4,475.9 1443.3,505.8 1394.8,564.1C1313.3,662.1 1351.5,842.5 1445.8,918.8C1488,952.4 1541.7,968 1595.3,962.2C1649.7,956.7 1700.4,932 1738.2,892.5zM1016.8,729.5C1028.3,708.8 1043.6,696.5 1066.5,690C1114.8,676.2 1157.3,696.2 1170.3,746.1C1177.3,774.5 1177.7,804.5 1179.4,833.6C1182.6,885.6 1182.6,937.3 1184.8,989.4C1186.6,1032.1 1183.3,1094.6 1226,1118.9C1258.9,1137.6 1311.1,1128 1329.6,1092.9C1336.3,1080.7 1338.7,1068.5 1339.3,1054.6C1339.8,1023 1338.1,990.3 1337,958.7L1331.2,801C1330,776.6 1329.2,752.1 1328.7,727.6C1328.2,693.9 1329.6,644.9 1319.8,612.9C1296.9,538.1 1224.6,498.2 1150.6,499.5C1075.3,502.6 1017.9,536 984.3,604.8C982.2,586.5 980.2,566.4 964.2,555C926.4,528 848.6,549.2 842.8,599.9C840,625.6 845.8,652.8 848.4,678.1C852.6,717.2 855.4,756.3 856.8,795.6C858.4,846.2 856.8,897 856.1,948.3C855,1022.2 837.9,1127.3 949.9,1110.7C980.6,1106.2 1009.2,1089.3 1013.7,1056.1C1016.7,1034 1013.4,1010.8 1013.1,988.5C1012.1,927.4 995.1,783.5 1016.8,729.5zM435.5,1060.3C513.2,1039 586.3,997.1 627.2,925.4C659.7,869.2 668.6,802.4 651.8,739.7C620.9,627.3 522.6,539.5 403.9,543.7C399.2,543.8 393,543.8 388.5,544.4C361.9,547.1 335.1,552.1 309.4,559.5C278.5,568.2 245.2,575.2 216.1,588.7C160.6,614.3 179.4,661.5 191.8,706.9C198.4,730.9 204.8,755 211,779.1C225.1,834.2 239.6,889.1 254.4,944C259.7,963.9 265,983.9 270.8,1003.6C276.8,1022.7 279.2,1040.2 292,1056.2C308.8,1077.2 332.2,1078.9 357,1075.9C384.2,1072.6 409.2,1066.6 435.5,1060.3zM754.2,1032.7C782.8,1028.8 805.6,1015.6 811,984.8C814.9,961.8 815.6,937.5 816.6,914.1C819,860.1 819.1,806.1 816.9,752.1C814.4,692.6 820.7,631.9 740.5,637.4C710.3,642 686.6,655.5 685,689.2C684.1,707.1 686.8,725.3 687,743.2C687.4,767 687.4,791.4 687,815.2C686.3,847 684.9,878.7 682.7,910.5C681.9,924.3 681.6,941 680.1,954.6C674.3,1007.3 697.8,1036 754.2,1032.7zM735.3,611C758.5,607.7 778.3,599.6 792.9,580.4C804.1,565.5 808.8,546.7 805.9,528.3C803.1,510.3 793.1,494.2 778.3,483.6C762.2,472 742.6,468.5 723.2,469.3C700.9,471.6 681.4,479.7 666.9,497.3C655.1,511.6 649.3,530.1 651,548.6C655.6,594.9 692.6,613.5 735.3,611z"/>
+
+                    <path d="M1634.3,618.4C1658.7,616.1 1685.7,624.7 1704.8,640C1722.6,654.3 1733.9,675 1736.4,697.6C1739,719.6 1732.5,741.6 1718.5,758.8C1699.8,781.7 1670,795.4 1640.8,798.3C1613.2,800.6 1587.5,796.1 1565.6,778.1C1528.6,747.8 1526.8,691.5 1557.3,655.9C1577.9,631.8 1603.1,621.2 1634.3,618.4z"/>
+
+                    <path d="M393.7,684.4C406,682.3 427.7,685.3 439.8,688.8C499.8,706.4 531.7,779.4 513.4,837.2C502.5,871.3 476,893.8 444.8,909.6C432.3,915.2 419.4,919.4 406,922.2C399.3,923.7 388.7,926.3 382.7,922.4C369.2,905.2 336.1,747.3 333.1,716C332.7,711.7 331.2,701.4 334.5,698.7C345.9,689.5 380.2,685.8 393.7,684.4z"/>
+                </g>
+            </svg>
+        </header>
+
+        <section class="hero">
+            <span class="eyebrow">Account management</span>
+
+            <h1>Delete your account</h1>
+
+            <p>
+                We're sorry to see you go. If you no longer want to use
+                Ding Messenger, you can permanently delete your account
+                using either of the methods below.
+            </p>
+        </section>
+
+        <section class="card">
+            <div class="step">
+                <div class="step-number">01</div>
+
+                <div>
+                    <h2>Delete from the Ding app</h2>
+
+                    <p>
+                        Open Ding Messenger on your device, navigate to
+                        Settings, and tap <strong>Delete account</strong>.
+                        Follow the on-screen instructions to complete
+                        the deletion process.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="step">
+                <div class="step-number">02</div>
+
+                <div>
+                    <h2>Request deletion by email</h2>
+
+                    <p>
+                        If you cannot access the app, send an account
+                        deletion request from your registered email
+                        address. Include your registered phone number
+                        with the country code so we can identify your
+                        account.
+                    </p>
+
+                    <a class="email-link"
+                       href="mailto:deebash2009@gmail.com?subject=Ding%20Account%20Deletion%20Request">
+                        Request account deletion &rarr;
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section class="notice">
+            <h2>What happens when you delete your account?</h2>
+
+            <p>
+                Your account will be scheduled for deletion after your
+                request is verified. Account-associated data will be
+                deleted in accordance with our data retention practices
+                and applicable legal requirements. Some information may
+                be retained where legally required.
+            </p>
+        </section>
+
+        <footer>
+            <p>
+                Need help?
+                <a href="mailto:deebash2009@gmail.com">
+                    Contact Ding Support
+                </a>
+            </p>
+
+            <p>&copy; 2026 Ding Messenger. All rights reserved.</p>
+        </footer>
+
+    </main>
+</body>
+</html>
